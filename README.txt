@@ -59,3 +59,17 @@ and state 1 goes to 2 on b.
 The accepting states are listed with "Accepting = statenum"
 
 Initial state listed as "Initial = statenum"
+
+
+
+*****************************************************************
+NFAL to NFA
+*****************************************************************
+
+NFAL1.txt is from NFALtoNFA.ppt
+
+NFAL2.txt is from Mod 15 notes (20?)
+
+NFAL3.txt is from page 143, figure 4.10a
+
+NLA4.txt is from page 145, Figure 4.11a

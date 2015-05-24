@@ -1,0 +1,9 @@
+Initial = 1
+Alphabet = a,b
+1,l,2
+2,l,b
+3,l,4
+4,a,4
+4,l,5
+5,b,6
+Accepting = 6
