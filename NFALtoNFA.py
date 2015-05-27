@@ -11,8 +11,6 @@ import copy
 
 #Definitely include the alphabet in the file
 #Then make nfa of the format [[statename,a trans,btrans],[state2, a.., b..]]
-#start with empty blanks and fill them in as you go
-
 
 #REQUIREMENT OF TEXT FILE:
 #Alphabet must be listed before transition table
@@ -34,7 +32,9 @@ def NFALtoNFA():
     #order of transitions as listed in value is consistent, and determined by alphabetized
     #alphabet specified in text file
     
-    ###   READING TEXT FILE AND BUILDING NFA-/\ STRUCTRUE
+    ############################################################################
+    ###   READING TEXT FILE AND BUILDING NFA-/\ STRUCTURE
+    ###########################################################################
     for i in fobj:
         line = i.strip().split()
         #print(line)
@@ -65,9 +65,9 @@ def NFALtoNFA():
                 index = alphabet.index(line[1])
                 #nfa_trans[line[0]][index] = [line[2]]   #Hmm cut back???
                 if nfa_trans[line[0]][index] == "{}":
-                    nfa_trans[line[0]][index] = [line[2]]
+                    nfa_trans[line[0]][index] = line[2]     #Note
                 else:
-                    nfa_trans[line[0]][index].append(line[2])
+                    nfa_trans[line[0]][index].append([line[2]])
 
                 #print(nfa_trans)
             liststates.add(line[2])
@@ -77,12 +77,77 @@ def NFALtoNFA():
     #sorts nfal by first state ascending, then transition, then second state
     #may not need. such inefficient if not lolol
 
+    ############################################################################
+    ### COMPUTING THE /\-CLOSURES (TO BE USED LATER)
+    ###########################################################################
+
+    print("list states", liststates)
+    print("nfal_trans", nfal_trans)
+
+    lambdas = dict() #key = statename, value = list of key's lamdas
+    for i in liststates:
+        lambdas[i] = [i]
+        for j in liststates:
+            if (i, 'l', j) in nfal_trans:
+                lambdas[i].append(j)
+
+    #secondary passes to make /\ closures:
+    while True:
+        cleanpass = True
+        for key,values in lambdas.items():
+            for value in values:
+                for secondaryval in lambdas[value]:
+                     #so with 2 key/val pairs [key1: [val1, val2..], val2: [val3,val4..]
+                     #we need to make sure all of val3,val4... in key1's values 
+                    if secondaryval not in lambdas[key]:
+                        lambdas[key].append(secondaryval)
+                        cleanpass = False
+                        #print("Lambdas", lambdas)
+        if cleanpass == True:
+            break
+
+    ############################################################################
+    ### Algo to process each state and build NFA
+    ############################################################################
+    print("nfa trans", nfa_trans)
+    print("lambda-closures", lambdas)
+    new_nfatrans = copy.deepcopy(nfa_trans)
+    for key,values in nfa_trans.items():
+        print("key", key)
+        index = 0
+        for value in values:
+            #index = values.index(value)
+            #print("index", index)
+            lambda_key = lambdas[key]
+            temptrans_list = []
+            for state in lambda_key:
+                print("state ", state)
+                if nfa_trans[state][index] != '{}':
+                    temptrans_list.append(nfa_trans[state][index]) # Note
+            new_additions = []
+            for state in temptrans_list:
+                new_additions += lambdas[state]
+            #print("new additions", new_additions)
+            prevtrans = new_nfatrans[key][index]
+            new_nfatrans[key][index] = (set(new_additions))
+            if prevtrans != "{}":
+                new_nfatrans[key][index].add(prevtrans)
+            index += 1
+    
+
     print("NFA-/\ Accepting: ", accepting)
     print("NFA-/\ Initial: ", initial)
     print("NFA-/\ list-states: ", liststates)
     print("NFA-/\ alphabet: ", alphabet)
-    print("NFA trans: ", nfa_trans)
     print("NFA-/\ trans: ", nfal_trans)
+    print("lambda-closures: ", lambdas)
+    print("NFA trans: ", new_nfatrans)
+
     
 
 NFALtoNFA()
+
+
+# Note: I'm pretty sure a state in an NFA-/\ can't have more than one transition
+# on a, more than one on b... even though it can have as many as it wants on /\
+# Double check this though, if it can, change at "Note" comments.
